@@ -4,6 +4,7 @@ import { useNavigation, useRoute } from '@react-navigation/native';
 import { Modal, Pressable } from 'react-native';
 import CheckBox from '@react-native-community/checkbox';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { isEnabled } from 'react-native/Libraries/Performance/Systrace';
 
 
     const TopScreen = () => {
@@ -87,58 +88,79 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
                 console.log('Response: ', response);
                 const result = await response.json();
     
-                if (result.success){
-                Alert.alert('Enviado', 'Checklist enviado como INCOMPLETO.');
-                navigation.navigate('ProcesoScreen')
-                }else{
-                    Alert.alert('Error al registrar los datos');
-                }
-              } catch (error) {
-                console.error('Error al guardar:', error);
-                Alert.alert('Error', 'No se pudo enviar el checklist incompleto.');
-              }
-            },
-          },
-        ]
-      );
-    };
+                 if (result.success) {
+                              Alert.alert('Enviado', 'Checklist enviado como INCOMPLETO.');
+                
+                              try {
+                                await fetch('http://192.168.16.146:3002/api/evaporador/completeJobs', {
+                                  method: 'POST',
+                                });
+                              } catch (error) {
+                                console.error('Error al llamar a completeJobs:', error);
+                              }
+                
+                              navigation.navigate('ProcesoScreen', { job });
+                
+                            } else {
+                              Alert.alert('Error al registrar los datos');
+                            }
+                          } catch (error) {
+                            console.error('Error al guardar:', error);
+                            Alert.alert('Error', 'No se pudo enviar el checklist incompleto.');
+                          }
+                        },
+                      },
+                    ]
+                  );
+                };
 
-    const handleComplete = async () => {
-        console.log('Payload enviado:', {
-  job,
-  fecha: fechaISO,
-  nomina: user?.Nomina,
-  checkboxes: checkedItems,
-  comentarios
-});
-
-        try { const response = await fetch ('http://192.168.16.146:3002/api/evaporador/completeTop', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    job,
-                    fecha: fechaISO,
-                    nomina: user?.Nomina,
-                    checkboxes: checkedItems,
-                    comentarios
-                }),
+     const handleComplete = async () => {
+                    console.log('Payload enviado:', {
+              job,
+              fecha: fechaISO,
+              nomina: user?.Nomina,
+              checkboxes: checkedItems,
+              comentarios
             });
-            const result = await response.json();
-            if (result.success) {
-    Alert.alert('Enviado', 'Checklist enviado como COMPLETO.');
-    navigation.navigate('ProcesoScreen', { job });
-} else {
-    console.log('Respuesta del servidor:', result);
-    Alert.alert('Error al registrar los datos', result.message || 'Error desconocido');
-}
+            
+                    try { const response = await fetch ('http://192.168.16.146:3002/api/evaporador/completeTop', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                            },
+                            body: JSON.stringify({
+                                job,
+                                fecha: fechaISO,
+                                nomina: user?.Nomina,
+                                checkboxes: checkedItems,
+                                comentarios
+                            }),
+                        });
+                        const result = await response.json();
+                        
+                            if (result.success) {
+                              Alert.alert('Enviado', 'Checklist enviado como COMPLETO.');
+                        
+                              try {
+                                await fetch('http://192.168.16.146:3002/api/evaporador/completeJobs', {
+                                  method: 'POST',
+                                });
+                              } catch (error) {
+                                console.error('Error al llamar a completeJobs:', error);
+                              }
+                        
+                              navigation.navigate('ProcesoScreen', { job });
+                            } else {
+                              console.log('Respuesta del servidor:', result);
+                              Alert.alert('Error al registrar los datos', result.message || 'Error desconocido');
+                            }
+                        
+                          } catch (error) {
+                            console.error('Error al guardar:', error);
+                            Alert.alert('Error', 'No se pudo enviar el checklist completo.');
+                          }
+                        };
 
-        } catch (error) {
-            console.error('Error al guardar:', error);
-            Alert.alert('Error', 'No se pudo enviar el checklist completo.');
-        }
-    };
 
     if (!user) {
         return (
@@ -151,9 +173,9 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
     return (
     <ImageBackground source={require('../assets/bg1-eb.jpg')} style={{ flex: 1 }}>
  <KeyboardAvoidingView
-  behavior={Platform.OS === 'ios' ? 'padding' : 'height'} // o 'position' si no funciona bien
+  behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       style={{ flex: 1 }}
-      keyboardVerticalOffset={Platform.OS === 'ios' ? 80 : 20} // Ajusta según tu header si tienes
+      keyboardVerticalOffset={Platform.OS === 'ios' ? 80 : 20}
     >
       <ScrollView contentContainerStyle={styles.scrollContent} keyboardShouldPersistTaps="handled">
         {/* Registro de Lecturas */}
@@ -201,8 +223,8 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
     [3, "ASSEMBLY, AIR DIVERTER, EVAP BOX", "4490190", "1"],
     [4, 'RECEIVING FLANGE, EVAPORATOR', "9010507", "1"],
     [5, 'BRACKET, MOUNTING, "A" COIL FRAME', "9010503", "4"],
-    [6, '#8-32 X 1/2", SS PHP SCREW', "200000", "13"],
-    [7, 'RIVET, ALUMINUM, BLIND, 3/16" DIA, 0.063" - 0.125" THK', "2120004", "11"],
+    [7, '#8-32 X 1/2", SS PHP SCREW', "2000003", "13"],
+    [8, 'RIVET, ALUMINUM, BLIND, 3/16" DIA, 0.063" - 0.125" THK', "2120004", "11"],
 ].map(([item, desc, part, qty], idx) => (
     <TouchableOpacity
         key={idx}
@@ -265,7 +287,6 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
         <View style={[styles.tableCellBase3, styles.colStat]}>
               <CheckBox
                   value={statusChecked}
-                  onValueChange={() => setStatusChecked(!statusChecked)}
                   disabled={!checkedItems.every(item => item)}
                   tintColors={{ true: 'black', false: 'gray' }}
               />

@@ -5748,6 +5748,11 @@ react-native-permissions@^5.4.2:
   resolved "https://registry.npmjs.org/react-native-permissions/-/react-native-permissions-5.4.2.tgz"
   integrity sha512-XNMoG1fxrB9q73MLn/ZfTaP7pS8qPu0KWypbeFKVTvoR+JJ3O7uedMOTH/mts9bTG+GKhShOoZ+k0CR63q9jwA==
 
+react-native-print@^0.11.0:
+  version "0.11.0"
+  resolved "https://registry.yarnpkg.com/react-native-print/-/react-native-print-0.11.0.tgz#3dc69fb05552f0c5da5be0dd345a93e1604621d1"
+  integrity sha512-hFDzb9dVJVT8c3VHNNWgkPfLF3Jfyw0WVJ3o7wUmSMmi5hJx6b++veNJ3J95d3lW3Y0sZUpGbn9+yzXrLANnJQ==
+
 react-native-reanimated@^4.0.1:
   version "4.0.1"
   resolved "https://registry.npmjs.org/react-native-reanimated/-/react-native-reanimated-4.0.1.tgz"

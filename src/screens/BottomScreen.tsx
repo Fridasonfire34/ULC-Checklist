@@ -70,50 +70,63 @@ const BottomScreen = () => {
     }
 
     const handleIncomplete = () => {
-          Alert.alert(
-            'Verificación Incompleta',
-            'No todos los puntos han sido verificados. ¿Deseas continuar?',
-            [
-              {
-                text: 'Cancelar',
-                style: 'cancel',
+  Alert.alert(
+    'Verificación Incompleta',
+    'No todos los puntos han sido verificados. ¿Deseas continuar?',
+    [
+      {
+        text: 'Cancelar',
+        style: 'cancel',
+      },
+      {
+        text: 'Sí',
+        onPress: async () => {
+          const payload = {
+            job,
+            fecha: fechaISO,
+            nomina: user?.Nomina,
+            checkboxes: checkedItems,
+            comentarios
+          };
+
+          try {
+            const response = await fetch('http://192.168.16.146:3002/api/evaporador/incompleteBottom', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
               },
-              {
-                text: 'Sí',
-                onPress: async () => {
-                      const payload = {
-                        job,
-                        fecha: fechaISO,
-                        nomina: user?.Nomina,
-                        checkboxes: checkedItems,
-                        comentarios
-                      };
-                    try { const response = await fetch('http://192.168.16.146:3002/api/evaporador/incompleteBottom',{
-                      method: 'POST',
-                      headers: {
-                        'Content-Type': 'application/json',
-                      },
-                         body: JSON.stringify(payload),
-                    });
-                    console.log('Response: ', response);
-                    const result = await response.json();
-        
-                    if (result.success){
-                    Alert.alert('Enviado', 'Checklist enviado como INCOMPLETO.');
-                    navigation.navigate('ProcesoScreen', { job })
-                    }else{
-                        Alert.alert('Error al registrar los datos');
-                    }
-                  } catch (error) {
-                    console.error('Error al guardar:', error);
-                    Alert.alert('Error', 'No se pudo enviar el checklist incompleto.');
-                  }
-                },
-              },
-            ]
-          );
-        };
-    
+              body: JSON.stringify(payload),
+            });
+
+            console.log('Response: ', response);
+            const result = await response.json();
+
+            if (result.success) {
+              Alert.alert('Enviado', 'Checklist enviado como INCOMPLETO.');
+
+              try {
+                await fetch('http://192.168.16.146:3002/api/evaporador/completeJobs', {
+                  method: 'POST',
+                });
+              } catch (error) {
+                console.error('Error al llamar a completeJobs:', error);
+              }
+
+              navigation.navigate('ProcesoScreen', { job });
+
+            } else {
+              Alert.alert('Error al registrar los datos');
+            }
+          } catch (error) {
+            console.error('Error al guardar:', error);
+            Alert.alert('Error', 'No se pudo enviar el checklist incompleto.');
+          }
+        },
+      },
+    ]
+  );
+};
+
         const handleComplete = async () => {
                 console.log('Payload enviado:', {
           job,
@@ -137,26 +150,36 @@ const BottomScreen = () => {
                         }),
                     });
                     const result = await response.json();
-                    if (result.success) {
-            Alert.alert('Enviado', 'Checklist enviado como COMPLETO.');
-            navigation.navigate('ProcesoScreen', { job });
-        } else {
-            console.log('Respuesta del servidor:', result);
-            Alert.alert('Error al registrar los datos', result.message || 'Error desconocido');
-        }
-        
-                } catch (error) {
-                    console.error('Error al guardar:', error);
-                    Alert.alert('Error', 'No se pudo enviar el checklist completo.');
-                }
-            };
+                    
+                        if (result.success) {
+                          Alert.alert('Enviado', 'Checklist enviado como COMPLETO.');
+                    
+                          try {
+                            await fetch('http://192.168.16.146:3002/api/evaporador/completeJobs', {
+                              method: 'POST',
+                            });
+                          } catch (error) {
+                            console.error('Error al llamar a completeJobs:', error);
+                          }
+                    
+                          navigation.navigate('ProcesoScreen', { job });
+                        } else {
+                          console.log('Respuesta del servidor:', result);
+                          Alert.alert('Error al registrar los datos', result.message || 'Error desconocido');
+                        }
+                    
+                      } catch (error) {
+                        console.error('Error al guardar:', error);
+                        Alert.alert('Error', 'No se pudo enviar el checklist completo.');
+                      }
+                    };
 
     return (
     <ImageBackground source={require('../assets/bg1-eb.jpg')} style={{ flex: 1 }}>
  <KeyboardAvoidingView
-  behavior={Platform.OS === 'ios' ? 'padding' : 'height'} // o 'position' si no funciona bien
+  behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       style={{ flex: 1 }}
-      keyboardVerticalOffset={Platform.OS === 'ios' ? 80 : 20} // Ajusta según tu header si tienes
+      keyboardVerticalOffset={Platform.OS === 'ios' ? 80 : 20}
     >
       <ScrollView contentContainerStyle={styles.scrollContent} keyboardShouldPersistTaps="handled">
         {/* Registro de Lecturas */}
@@ -270,7 +293,6 @@ const BottomScreen = () => {
     <View style={[styles.tableCellBase3, styles.colStat]}>
       <CheckBox
           value={statusChecked}
-          onValueChange={() => setStatusChecked(!statusChecked)}
           disabled={!checkedItems.every(item => item)}
           tintColors={{ true: 'black', false: 'gray' }}
       />

@@ -28,6 +28,7 @@ const MenuScreen = () => {
         { id: 2, label: 'Checklist Proceso', screen: 'ProcesoScreen' },
         { id: 3, label: 'Checklist Final', screen: 'FinalCheckScreen' },
         { id: 4, label: 'Evidencias', screen: 'EvidenciasScreen' },
+        { id: 5, label: 'Reporte', screen: 'ReporteScreen'}
     ];
 
     useEffect(() => {
@@ -37,56 +38,44 @@ const MenuScreen = () => {
                 setUser(JSON.parse(userData));
             }
         };
-
-        const fetchLecturasYChecklist = async () => {
-            try {
-                const response = await fetch('http://192.168.16.146:3002/api/evaporador/getLecturasyCFinal', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ job }),
-                });
-
-                if (!response.ok) {
-                    throw new Error('Error al consultar getLecturasyCFinal');
-                }
-
-                const data = await response.json();
-
-                if (data.statusLecturas === 'OK') {
-                    setStatusLecturasOK(true);
-                }
-
-                if (data.statusChecklistFinal === 'OK') {
-                    setStatusChecklistFinalOK(true);
-                }
-
-                if (data.statusPeso === 'OK') {
-                    setStatusPesosOK(true);
-                }
-
-                if (data.statusProceso === 'OK') {
-                    setStatusProcesoOK(true);
-                }
-            } catch (error) {
-                console.error('Error al consultar getLecturasyCFinal:', error);
-                Alert.alert('Error', 'No se pudo obtener el estado de Lecturas o Checklist Final.');
-            }
-        };
-
         loadUserData();
-        fetchLecturasYChecklist();
     }, []);
 
     useFocusEffect(
-        useCallback(() => {
-            const onBackPress = () => {
-                navigation.navigate('Inicio' as never);
-                return true;
-            };
+      useCallback(() => {
+        const fetchLecturasYChecklist = async () => {
+          try {
+            const response = await fetch('http://192.168.16.146:3002/api/evaporador/getLecturasyCFinal', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ job }),
+            });
 
-            const subscription = BackHandler.addEventListener('hardwareBackPress', onBackPress);
-            return () => subscription.remove();
-        }, [navigation])
+            const data = await response.json();
+
+            setStatusLecturasOK(data.statusLecturas === 'OK');
+            setStatusChecklistFinalOK(data.statusChecklistFinal === 'OK');
+            setStatusPesosOK(data.statusPesos === 'OK');
+            setStatusProcesoOK(data.statusProceso === 'OK');
+          } catch (error) {
+            Alert.alert('Error', 'No se pudo obtener el estado del trabajo.');
+          }
+        };
+
+        fetchLecturasYChecklist();
+      }, [job])
+    );
+
+    useFocusEffect(
+      useCallback(() => {
+        const onBackPress = () => {
+          navigation.navigate('Inicio' as never);
+          return true;
+        };
+
+        const subscription = BackHandler.addEventListener('hardwareBackPress', onBackPress);
+        return () => subscription.remove();
+      }, [navigation])
     );
 
     const handlePress = (id: number, screen: string | null) => {
@@ -94,6 +83,17 @@ const MenuScreen = () => {
         if (screen) {
             navigation.navigate(screen as never, { job } as never);
         }
+    };
+
+    const canEnableReporte = () => {
+        const statuses = [
+            statusLecturasOK,
+            statusPesosOK,
+            statusProcesoOK,
+            statusChecklistFinalOK,
+        ];
+        const okCount = statuses.filter(Boolean).length;
+        return okCount === 4;
     };
 
     if (!user) {
@@ -116,24 +116,47 @@ const MenuScreen = () => {
             <View style={styles.buttonContainer}>
                 {buttons.map((button) => {
                     const isPressed = activeButton === button.id;
-
+                    
                     const isAutoActive =
                         (button.id === 0 && statusLecturasOK) ||
                         (button.id === 1 && statusPesosOK) ||
                         (button.id === 2 && statusProcesoOK) ||
-                        (button.id === 3 && statusChecklistFinalOK); // Checklist Final
+                        (button.id === 3 && statusChecklistFinalOK);
 
                     const isActive = isPressed || isAutoActive;
 
                     const hasRegistro = button.label.includes('Registro');
                     const hasCheckList = button.label.includes('Checklist');
                     const hasEvidencia = button.label.includes('Evidencias');
+                    const isReporte = button.label.includes('Reporte');
+                    
+                    const isDisabled = isReporte && !canEnableReporte();
 
                     return (
                         <TouchableOpacity
                             key={button.id}
-                            style={[styles.button, isActive && styles.activeButton]}
-                            onPress={() => handlePress(button.id, button.screen)}
+                            style={[
+                                styles.button,
+                                isActive && styles.activeButton,
+                                isDisabled && styles.disabledButton
+                            ]}
+                            onPress={() => {
+                                if (isAutoActive) {
+                                    Alert.alert(
+                                        'Checklist completo',
+                                        'Este checklist ya está completado y guardado.\nContestarlo de nuevo borrará la información anterior,\n\n¿Deseas continuar?',
+                                        [
+                                            { text: 'No', style: 'cancel' },
+                                            { text: 'Sí', onPress: () => handlePress(button.id, button.screen) }
+                                        ]
+                                    );
+                                } else if (!isDisabled) {
+                                    handlePress(button.id, button.screen);
+                                } else if (isReporte) {
+                                    Alert.alert('Acción no permitida', 'Debes completar todos los pasos antes de generar el reporte.');
+                                }
+                            }}
+                            disabled={isDisabled}
                         >
                             <View style={styles.contentRow}>
                                 {hasRegistro && (
@@ -154,7 +177,17 @@ const MenuScreen = () => {
                                         style={styles.buttonImageCamera}
                                     />
                                 )}
-                                <Text style={[styles.buttonText, isActive && styles.activeButtonText]}>
+                                {isReporte && (
+                                    <Image
+                                    source={require('../assets/ok.png')}
+                                    style={styles.buttonImageOK}
+                                    />
+                                )}
+                                <Text style={[
+                                    styles.buttonText,
+                                    isActive && styles.activeButtonText,
+                                    isDisabled && styles.disabledButtonText
+                                ]}>
                                     {button.label}
                                 </Text>
                             </View>
@@ -176,17 +209,6 @@ const styles = StyleSheet.create({
         flex: 1,
         backgroundColor: '#fff',
         paddingTop: 10,
-    },
-    header: {
-        position: 'absolute',
-        top: 10,
-        alignItems: 'center',
-        width: '100%',
-    },
-    text: {
-        fontSize: 24,
-        fontWeight: 'bold',
-        marginBottom: 25,
     },
     welcomeText: {
         position: 'absolute',
@@ -250,6 +272,13 @@ const styles = StyleSheet.create({
         marginRight: 2,
         resizeMode: 'contain',
     },
+    buttonImageOK: {
+        width: 60,
+        height: 60,
+        marginRight: 2,
+        resizeMode: 'contain',
+        marginTop: 2
+    },
     infoRow: {
         flexDirection: 'row',
         flexWrap: 'wrap',
@@ -265,6 +294,13 @@ const styles = StyleSheet.create({
         fontWeight: 'bold',
         fontSize: 24,
         color: 'black'
+    },
+    disabledButton: {
+        backgroundColor: '#cccccc',
+        borderColor: '#999',
+    },
+    disabledButtonText: {
+        color: '#666666',
     },
 });
 

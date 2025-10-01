@@ -97,21 +97,31 @@ const MasterScreen = () => {
                         console.log('Response: ', response);
                         const result = await response.json();
             
-                        if (result.success){
-                        Alert.alert('Enviado', 'Checklist enviado como INCOMPLETO.');
-                        navigation.navigate('ProcesoScreen')
-                        }else{
-                            Alert.alert('Error al registrar los datos');
-                        }
-                      } catch (error) {
-                        console.error('Error al guardar:', error);
-                        Alert.alert('Error', 'No se pudo enviar el checklist incompleto.');
-                      }
-                    },
-                  },
-                ]
-              );
-            };
+                         if (result.success) {
+                                      Alert.alert('Enviado', 'Checklist enviado como INCOMPLETO.');
+                        
+                                      try {
+                                        await fetch('http://192.168.16.146:3002/api/evaporador/completeJobs', {
+                                          method: 'POST',
+                                        });
+                                      } catch (error) {
+                                        console.error('Error al llamar a completeJobs:', error);
+                                      }
+                        
+                                      navigation.navigate('ProcesoScreen', { job });
+                        
+                                    } else {
+                                      Alert.alert('Error al registrar los datos');
+                                    }
+                                  } catch (error) {
+                                    console.error('Error al guardar:', error);
+                                    Alert.alert('Error', 'No se pudo enviar el checklist incompleto.');
+                                  }
+                                },
+                              },
+                            ]
+                          );
+                        };
         
             const handleComplete = async () => {
                     console.log('Payload enviado:', {
@@ -139,7 +149,7 @@ const MasterScreen = () => {
                         const result = await response.json();
                         if (result.success) {
                 Alert.alert('Enviado', 'Checklist enviado como COMPLETO.');
-                navigation.navigate('ProcesoScreen');
+                navigation.navigate('ProcesoScreen', { job })
             } else {
                 console.log('Respuesta del servidor:', result);
                 Alert.alert('Error al registrar los datos', result.message || 'Error desconocido');
@@ -154,9 +164,9 @@ const MasterScreen = () => {
     return (
     <ImageBackground source={require('../assets/bg1-eb.jpg')} style={{ flex: 1 }}>
  <KeyboardAvoidingView
-  behavior={Platform.OS === 'ios' ? 'padding' : 'height'} // o 'position' si no funciona bien
+  behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       style={{ flex: 1 }}
-      keyboardVerticalOffset={Platform.OS === 'ios' ? 80 : 20} // Ajusta según tu header si tienes
+      keyboardVerticalOffset={Platform.OS === 'ios' ? 80 : 20}
     >
       <ScrollView contentContainerStyle={styles.scrollContent} keyboardShouldPersistTaps="handled">
         {/* Registro de Lecturas */}
@@ -272,7 +282,6 @@ const MasterScreen = () => {
     <View style={[styles.tableCellBase3, styles.colStat]}>
       <CheckBox
           value={statusChecked}
-          onValueChange={() => setStatusChecked(!statusChecked)}
           disabled={!checkedItems.every(item => item)}
           tintColors={{ true: 'black', false: 'gray' }}
       />

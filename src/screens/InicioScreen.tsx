@@ -7,14 +7,11 @@ import {
     ActivityIndicator,
     TouchableOpacity,
     Alert,
-    SafeAreaView,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { useSafeAreaInsets } from 'react-native-safe-area-context'; // 👈 nuevo
 
 const InicioScreen = () => {
-    const insets = useSafeAreaInsets(); // 👈 obtiene márgenes seguros del dispositivo
     const [user, setUser] = useState<any>(null);
     const navigation = useNavigation();
     const [loading, setLoading] = useState(false);
@@ -40,6 +37,7 @@ const InicioScreen = () => {
                 throw new Error('Error al obtener los jobs');
             }
             const data = await response.json();
+
             setJobsData(data.jobs || data);
         } catch (error) {
             console.error('Error al cargar jobs:', error);
@@ -51,51 +49,50 @@ const InicioScreen = () => {
 
     if (!user) {
         return (
-            <View style={[styles.container, { paddingTop: insets.top }]}>
+            <View style={styles.container}>
                 <Text style={styles.loadingText}>Cargando datos del usuario...</Text>
             </View>
         );
     }
 
     return (
-        <SafeAreaView style={{ flex: 1, backgroundColor: '#fff' }}>
-            <View style={styles.container}>
-                <View style={styles.headerBox}>
-                    <Text style={styles.headerText}>Evaporador BOX</Text>
-                    <Text style={styles.welcomeText}>{user.Nomina}</Text>
-                </View>
-
-                <View style={styles.sectionBox}>
-                    <Text style={styles.sectionTitle}>Elige un job:</Text>
-                </View>
-
-                <View style={styles.tableWrapper}>
-                    {loading ? (
-                        <ActivityIndicator size="large" color="#000000ff" />
-                    ) : (
-                        <FlatList
-                            data={jobsData}
-                            keyExtractor={(item, index) => index.toString()}
-                            contentContainerStyle={{ paddingBottom: insets.bottom + 20 }} // 👈 espacio para barra de navegación
-                            renderItem={({ item }) => (
-                                <TouchableOpacity
-                                    onPress={() =>
-                                        navigation.navigate('Menu', {
-                                            job: item["Job Number"],
-                                            nomina: user.Nomina,
-                                        })
-                                    }
-                                >
-                                    <View style={styles.tableRow}>
-                                        <Text style={styles.tableCell}>{item["Job Number"]}</Text>
-                                    </View>
-                                </TouchableOpacity>
-                            )}
-                        />
-                    )}
-                </View>
+        <View style={styles.container}>
+            <View style={styles.headerBox}>
+                <Text style={styles.headerText}>Evaporador BOX</Text>
+                <Text style={styles.welcomeText}> {user.Nomina}</Text>
             </View>
-        </SafeAreaView>
+            <View style={styles.sectionBox}>
+                <Text style={styles.sectionTitle}>Elige un job:</Text>
+            </View>
+            {/* Tabla de Jobs */}
+            <View style={styles.tableWrapper}>
+                {loading ? (
+                    <ActivityIndicator size="large" color="#000000ff" />
+                ) : (
+                    <>
+
+                        {/* Filas */}
+                        <FlatList
+    data={jobsData}
+    keyExtractor={(item, index) => index.toString()}
+    renderItem={({ item }) => (
+        <TouchableOpacity
+            onPress={() => navigation.navigate('Menu', {
+                job: item["Job Number"],
+                nomina: user.Nomina,
+            })}
+        >
+            <View style={styles.card}>
+                <Text style={styles.cardText}>{item["Job Number"]}</Text>
+            </View>
+        </TouchableOpacity>
+    )}
+    contentContainerStyle={{ paddingBottom: 120, flexGrow: 1, }}
+/>
+                    </>
+                )}
+            </View>
+        </View>
     );
 };
 
@@ -107,9 +104,7 @@ const styles = StyleSheet.create({
         marginTop: 80,
     },
     container: {
-        flex: 1,
         backgroundColor: '#fff',
-        paddingBottom: 50
     },
     headerBox: {
         backgroundColor: '#0011ffff',
@@ -157,11 +152,11 @@ const styles = StyleSheet.create({
     tableWrapper: {
         marginHorizontal: 10,
         marginTop: 5,
-        paddingBottom: 50,
+        paddingBottom: 10,
+        marginBottom: 120,
     },
     tableHeader: {
         flexDirection: 'row',
-        ///backgroundColor: '#0011ffff',
         paddingVertical: 10,
         paddingHorizontal: 5,
         color: 'black'
@@ -184,7 +179,26 @@ const styles = StyleSheet.create({
         fontSize: 16,
         paddingHorizontal: 5,
     },
-
+    card: {
+        backgroundColor: '#f5f5f5', // Color de fondo del recuadro
+        padding: 15,
+        marginBottom: 10, // separación entre cada recuadro
+        borderRadius: 8, // bordes redondeados
+        borderWidth: 1,
+        borderColor: '#ddd',
+        elevation: 2, // sombra en Android
+        shadowColor: '#000', // sombra en iOS
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.2,
+        shadowRadius: 2,
+    },
+    cardText: {
+        fontSize: 16,
+        fontWeight: 'bold',
+        color: '#333',
+        textAlign: 'center'
+    },
+    
 
 });
 

@@ -65,25 +65,57 @@ const OpcionesProcesoScreen = () => {
     
 
     const handlePress = (id: number, screen: string | null) => {
-        setActiveButton(id);
-        if (screen) {
-            navigation.navigate(screen as never, { job } as never);
+        const isAutoActive =
+            (id === 0 && statusLIDOK) ||
+            (id === 1 && statusTOPOK) ||
+            (id === 2 && statusBOTTOMOK) ||
+            (id === 3 && statusMASTEROK);
+
+        if (isAutoActive) {
+            Alert.alert(
+                'Checklist completo',
+                'Este checklist ya está completado y guardado.\nContestarlo de nuevo borrará la información anterior,\n\n¿Deseas continuar?',
+                [
+                    { text: "No", style: "cancel" },
+                    {
+                        text: "Sí",
+                        onPress: () => {
+                            setActiveButton(id);
+                            if (screen) {
+                                navigation.navigate(screen as never, { job } as never);
+                            }
+                        },
+                    },
+                ]
+            );
+        } else {
+            setActiveButton(id);
+            if (screen) {
+                navigation.navigate(screen as never, { job } as never);
+            }
         }
     };
 
     useFocusEffect(
-    useCallback(() => {
-        const onBackPress = () => {
-            navigation.navigate('Menu' as never, { job } as never);
-            return true;
+      useCallback(() => {
+        const onBackPress = async () => {
+          try {
+            await fetch('http://192.168.16.146:3002/api/evaporador/completeJobs', {
+              method: 'POST',
+            });
+          } catch (error) {
+            console.error('Error al llamar a completeJobs desde botón atrás:', error);
+          }
+    
+          navigation.navigate('Menu' as never, { job } as never);
+          return true;
         };
-
+    
         const subscription = BackHandler.addEventListener('hardwareBackPress', onBackPress);
-
+    
         return () => subscription.remove();
-    }, [navigation])
-);
-
+      }, [navigation, job])
+    );
 
     return (
         <View style={styles.container}>

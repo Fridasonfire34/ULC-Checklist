@@ -14,6 +14,7 @@ import {
     KeyboardAvoidingView,
     Alert
 } from 'react-native';
+import { Picker } from '@react-native-picker/picker';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { StackScreenProps } from '@react-navigation/stack';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -171,25 +172,34 @@ const PesosBaseScreen = () => {
                            </View>
                        </View>
        
-                       {/* Maquinado - Termómetro */}
-                       <View style={[styles.rowPair, { width: width * 0.9 }]}>
-                           <View style={styles.pairItemME}>
-                               <Text style={styles.label}>Maquinado Espumado:</Text>
-                               <TextInput
-                                   style={[styles.input, { width: 300 }]}
-                                   value={data.maquinado}
-                                   onChangeText={text => handleChange('maquinado', text)}
-                               />
-                           </View>
-                           <View style={styles.pairItem}>
-                               <Text style={styles.label}>ID Termómetro:</Text>
-                               <TextInput
-                                   style={[styles.input, { width: 300 }]}
-                                   value={data.termometroId}
-                                   onChangeText={text => handleChange('termometroId', text)}
-                               />
-                           </View>
-                       </View>
+                         {/* Maquinado - Termómetro */}
+                 <View style={[styles.rowPair, { width: width * 0.9 }]}>
+  {/* Columna izquierda */}
+  <View style={styles.pairItem}>
+    <Text style={styles.label}>Maquina Espumado</Text>
+    <Picker
+      selectedValue={data.maquinado}
+      style={styles.picker}
+      placeholder='Seleccione una opcion'
+      onValueChange={(itemValue) => handleChange('maquinado', itemValue)}
+    >
+    <Picker.Item label="Seleccione una opcion" value="" />
+      <Picker.Item label="1" value="1" />
+      <Picker.Item label="2" value="2" />
+      <Picker.Item label="3" value="3" />
+    </Picker>
+  </View>
+
+  {/* Columna derecha */}
+  <View style={styles.pairItem}>
+    <Text style={styles.label}>ID Termometro</Text>
+    <TextInput
+      style={[styles.input, { width: 300 }]}
+      value={data.termometroId}
+      onChangeText={(text) => handleChange('termometroId', text)}
+    />
+  </View>
+</View>
        
        <View style={styles.tableContainer}>
            <View style={styles.tableRow2}>
@@ -310,6 +320,7 @@ const styles = StyleSheet.create({
            flexGrow: 1,
            paddingBottom: 50,
           paddingHorizontal: 2,
+          alignContent: 'center'
        },
        headerBox: {
            backgroundColor: '#0011ff',
@@ -340,6 +351,16 @@ const styles = StyleSheet.create({
            fontSize: 14,
            color: 'white',
        },
+       picker: {
+        height: 50,
+        borderWidth: 2,
+        borderColor: '#4e4e4e73',
+        borderRadius: 10,
+        width: 300,
+        //color: 'black',
+        justifyContent: 'center',
+        backgroundColor: '#c2c2c2ff',
+      },
        label: {
            fontSize: 14,
            fontWeight: 'bold',

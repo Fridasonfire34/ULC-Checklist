@@ -63,89 +63,114 @@ const FinalCheckScreen = () => {
     }
 
      const handleIncomplete = () => {
-                  Alert.alert(
-                    'Verificación Incompleta',
-                    'No todos los puntos han sido verificados. ¿Deseas continuar?',
-                    [
-                      {
-                        text: 'Cancelar',
-                        style: 'cancel',
-                      },
-                      {
-                        text: 'Sí',
-                        onPress: async () => {
-                              const payload = {
-                                job,
-                                fecha: fechaISO,
-                                nomina: user?.Nomina,
-                                checkboxes: [...checkedItems, ...checkedCleaning, ...checkedBlower],
-                                comentarios
-                              };
-                            try { const response = await fetch('http://192.168.16.146:3002/api/evaporador/incompleteFinal',{
-                              method: 'POST',
-                              headers: {
-                                'Content-Type': 'application/json',
-                              },
-                                 body: JSON.stringify(payload),
-                            });
-                            console.log('Total checkboxes:', [...checkedItems, ...checkedCleaning, ...checkedBlower].length);
-                            console.log('Response: ', response);
-                            const result = await response.json();
-                
-                            if (result.success){
-                            Alert.alert('Enviado', 'Checklist enviado como INCOMPLETO.');
-                            navigation.navigate('Menu', { job })
-                            }else{
-                                Alert.alert('Error al registrar los datos');
-                            }
-                          } catch (error) {
-                            console.error('Error al guardar:', error);
-                            Alert.alert('Error', 'No se pudo enviar el checklist incompleto.');
-                          }
-                        },
-                      },
-                    ]
-                  );
-                };
+  Alert.alert(
+    'Verificación Incompleta',
+    'No todos los puntos han sido verificados. ¿Deseas continuar?',
+    [
+      {
+        text: 'Cancelar',
+        style: 'cancel',
+      },
+      {
+        text: 'Sí',
+        onPress: async () => {
+          const payload = {
+            job,
+            fecha: fechaISO,
+            nomina: user?.Nomina,
+            checkboxes: [...checkedItems, ...checkedCleaning, ...checkedBlower],
+            comentarios
+          };
+
+          try {
+            const response = await fetch('http://192.168.16.146:3002/api/evaporador/incompleteFinal', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify(payload),
+            });
+
+            console.log('Total checkboxes:', [...checkedItems, ...checkedCleaning, ...checkedBlower].length);
+            const result = await response.json();
+
+            if (result.success) {
+              Alert.alert('Enviado', 'Checklist enviado como INCOMPLETO.');
+
+              try {
+                await fetch('http://192.168.16.146:3002/api/evaporador/completeJobs', {
+                  method: 'POST',
+                });
+              } catch (error) {
+                console.error('Error al llamar a completeJobs:', error);
+              }
+
+              navigation.navigate('Menu', { job });
+            } else {
+              Alert.alert('Error al registrar los datos');
+            }
+
+          } catch (error) {
+            console.error('Error al guardar:', error);
+            Alert.alert('Error', 'No se pudo enviar el checklist incompleto.');
+          }
+        },
+      },
+    ]
+  );
+};
+
             
                 const handleComplete = async () => {
-                        console.log('Payload enviado:', {
-                  job,
-                  fecha: fechaISO,
-                  nomina: user?.Nomina,
-                  checkboxes: [...checkedItems, ...checkedCleaning, ...checkedBlower],
-                  comentarios
-                });
-                
-                        try { const response = await fetch ('http://192.168.16.146:3002/api/evaporador/completeFinal', {
-                                method: 'POST',
-                                headers: {
-                                    'Content-Type': 'application/json',
-                                },
-                                body: JSON.stringify({
-                                    job,
-                                    fecha: fechaISO,
-                                    nomina: user?.Nomina,
-                                    checkboxes: [...checkedItems, ...checkedCleaning, ...checkedBlower],
-                                    comentarios
-                                }),
-                            });
-                            console.log('Total checkboxes:', [...checkedItems, ...checkedCleaning, ...checkedBlower].length);
-                            console.log('Response: ', response);
-                            const result = await response.json();
-                            if (result.success) {
-                    Alert.alert('Enviado', 'Checklist enviado como COMPLETO.');
-                    navigation.navigate('Menu', { job });
-                } else {
-                    console.log('Respuesta del servidor:', result);
-                    Alert.alert('Error al registrar los datos', result.message || 'Error desconocido');
-                }
-                
-                        } catch (error) {
-                            console.error('Error al guardar:', error);
-                            Alert.alert('Error', 'No se pudo enviar el checklist completo.');
-                        }
-                    };
+  console.log('Payload enviado:', {
+    job,
+    fecha: fechaISO,
+    nomina: user?.Nomina,
+    checkboxes: [...checkedItems, ...checkedCleaning, ...checkedBlower],
+    comentarios
+  });
+
+  try {
+    const response = await fetch('http://192.168.16.146:3002/api/evaporador/completeFinal', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        job,
+        fecha: fechaISO,
+        nomina: user?.Nomina,
+        checkboxes: [...checkedItems, ...checkedCleaning, ...checkedBlower],
+        comentarios
+      }),
+    });
+
+    console.log('Total checkboxes:', [...checkedItems, ...checkedCleaning, ...checkedBlower].length);
+    const result = await response.json();
+
+    if (result.success) {
+      Alert.alert('Enviado', 'Checklist enviado como COMPLETO.');
+
+      try {
+        await fetch('http://192.168.16.146:3002/api/evaporador/completeJobs', {
+          method: 'POST',
+        });
+      } catch (error) {
+        console.error('Error al llamar a completeJobs:', error);
+      }
+
+      navigation.navigate('Menu', { job });
+    } else {
+      console.log('Respuesta del servidor:', result);
+      Alert.alert('Error al registrar los datos', result.message || 'Error desconocido');
+    }
+
+  } catch (error) {
+    console.error('Error al guardar:', error);
+    Alert.alert('Error', 'No se pudo enviar el checklist completo.');
+  }
+};
+
     
 
     return (
@@ -403,7 +428,6 @@ const FinalCheckScreen = () => {
     <View style={[styles.tableCellBase3, styles.colStat]}>
       <CheckBox
     value={statusChecked}
-    onValueChange={() => setStatusChecked(!statusChecked)}
     disabled={!(
   checkedItems.every(item => item) &&
   checkedCleaning.every(item => item) &&

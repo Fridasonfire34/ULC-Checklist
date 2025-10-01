@@ -141,7 +141,6 @@ const LoginScreen: React.FC<Props> = ({ navigation }) => {
     }
 };
 
-
     return (
         <ImageBackground
             source={require('../assets/bg1-eb.jpg')}
@@ -160,6 +159,7 @@ const LoginScreen: React.FC<Props> = ({ navigation }) => {
                     <TextInput
                         style={styles.input}
                         value={nomina}
+                        keyboardType='numeric'
                         onChangeText={setNomina}
                         onFocus={() => handleFocus('nomina')}
                         onBlur={() => handleBlur('nomina')}

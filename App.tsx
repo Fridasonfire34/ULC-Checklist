@@ -10,7 +10,6 @@ import LoginScreen from './src/screens/LoginScreen';
 import InicioScreen from './src/screens/InicioScreen';
 import MenuScreen from './src/screens/MenuScreen';
 import RegistroLecturasScreen from './src/screens/RegistroLecturasScreen';
-import JobsScreen from './src/screens/JobsScreen';
 import PesosScreen from './src/screens/PesosScreen';
 import OpcionesProcesoScreen from './src/screens/OpcionesProcesoScreen';
 import LIDScreen from './src/screens/LIDScreen';
@@ -22,6 +21,7 @@ import BottomScreen from './src/screens/BottomScreen';
 import MasterScreen from './src/screens/MasterScreen';
 import FinalCheckScreen from './src/screens/FinalCheckScreen';
 import EvidenciasScreen from './src/screens/EvidenciasScreen';
+import ReporteScreen from './src/screens/ReporteScreen';
 
 type RootStackParamList = {
   Login: undefined;
@@ -29,7 +29,6 @@ type RootStackParamList = {
   Menu: undefined;
   Pesos: undefined;
   RegistroLecturas: undefined;
-  JobsScreen: undefined;
   BottomScreen: undefined;
   EvidenciasScreen: undefined;
   FinalCheckScreen: undefined;
@@ -43,6 +42,7 @@ type RootStackParamList = {
   PesosTapaScreen: undefined;
   RegistroLecturasScreen: undefined;
   TopScreen: undefined;
+  ReporteScreen: undefined;
   };
 
 const Stack = createStackNavigator<RootStackParamList>();
@@ -96,11 +96,6 @@ const App: React.FC = () => {
           options={{ headerShown: false }}
         />
         <Stack.Screen
-          name="JobsScreen"
-          component={JobsScreen}
-          options={{ headerShown: false }}
-        />
-        <Stack.Screen
           name="ProcesoScreen"
           component={OpcionesProcesoScreen}
           options={{ headerShown: false }}
@@ -148,6 +143,11 @@ const App: React.FC = () => {
         <Stack.Screen
           name="EvidenciasScreen"
           component={EvidenciasScreen}
+          options={{ headerShown: false }}
+        />
+        <Stack.Screen
+          name="ReporteScreen"
+          component={ReporteScreen}
           options={{ headerShown: false }}
         />
       </Stack.Navigator>

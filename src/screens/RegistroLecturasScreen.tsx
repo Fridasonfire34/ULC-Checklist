@@ -67,7 +67,6 @@ const RegistroLecturasScreen = () => {
     }
 
     const handleChange = (section, key, value) => {
-    console.log(`Cambiando ${section}.${key} a ${value}`);
     setData(prev => ({
         ...prev,
         [section]: {
@@ -78,38 +77,48 @@ const RegistroLecturasScreen = () => {
 };
 
 const handleSave = async () => {
-    const payload = {
-        job: job,
-        fecha: fechaISO,
-        nomina: user.Nomina,
-        drainA: data.drainA,
-        drainB: data.drainB,
-        comentarios,
-        aprobado: approvalStatus === 'approved' ? 'SI' : 'NO',
-    };
+  const payload = {
+    job: job,
+    fecha: fechaISO,
+    nomina: user.Nomina,
+    drainA: data.drainA,
+    drainB: data.drainB,
+    comentarios,
+    aprobado: approvalStatus === 'approved' ? 'SI' : 'NO',
+  };
 
-    try {
-        const response = await fetch('http://192.168.16.146:3002/api/evaporador/registroLecturas', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(payload),
-            
+  try {
+    const response = await fetch('http://192.168.16.146:3002/api/evaporador/registroLecturas', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(payload),
+    });
+
+    console.log('Response:', response);
+    const result = await response.json();
+
+    if (result.success) {
+      Alert.alert('Lectura registrada correctamente');
+
+      try {
+        await fetch('http://192.168.16.146:3002/api/evaporador/completeJobs', {
+          method: 'POST',
         });
-        console.log('Response:', response);
-        const result = await response.json(); 
+      } catch (error) {
+        console.error('Error al llamar a completeJobs:', error);
+      }
 
-        if (result.success) {
-            Alert.alert('Lectura registrada correctamente');
-            navigation.navigate('Menu', { job });
-        } else {
-            Alert.alert('Error al registrar lectura');
-        }
-    } catch (error) {
-        console.error('Error al guardar:', error);
-        Alert.alert('Error de conexión al servidor');
+      navigation.navigate('Menu', { job });
+    } else {
+      Alert.alert('Error al registrar lectura');
     }
+
+  } catch (error) {
+    console.error('Error al guardar:', error);
+    Alert.alert('Error de conexión al servidor');
+  }
 };
 
     return (
@@ -387,6 +396,9 @@ const styles = StyleSheet.create({
     scrollContent: {
         flexGrow: 1,
         paddingBottom: 50,
+        marginLeft: 5,
+        marginRight: 5,
+        alignContent: 'center'
     },
     container: {
         flexGrow: 1,
@@ -406,7 +418,7 @@ const styles = StyleSheet.create({
     sectionBox: {
         marginBottom: 10,
         alignItems: 'center',
-        marginLeft: 1
+        marginLeft: 2,
     },
     sectionTitle: {
         fontSize: 22,

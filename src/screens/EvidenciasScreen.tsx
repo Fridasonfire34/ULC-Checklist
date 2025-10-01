@@ -53,7 +53,6 @@ const EvidenciasScreen = () => {
     setFolders(result.carpetas); 
 
   } catch (error) {
-    console.error('Error al cargar carpetas:', error);
     Alert.alert('No se pudieron cargar las carpetas. Intenta más tarde.');
   }
 };
@@ -175,10 +174,7 @@ const deleteFolder = async (folderName: string) => {
     setNewFolderName('');
     setModalVisible(false);
 
-    console.log('✅ Carpeta creada en el backend:', result.message);
-
   } catch (error) {
-    console.error('❌ Error al crear carpeta en el backend:', error);
     Alert.alert('Error al crear carpeta. Intenta nuevamente.');
   }
 };
@@ -226,13 +222,9 @@ const handleOpenFolder = (folderName: string) => {
     if (response.didCancel) {
       console.log('Usuario canceló la cámara');
     } else if (response.errorCode) {
-      console.error('Error al abrir la cámara:', response.errorMessage);
-      console.log('Error', `Error al abrir la cámara: ${response.errorMessage}`);
     } else {
       const asset = response.assets?.[0];
       if (!asset?.base64) {
-        console.warn('No se recibió base64 en la respuesta de la cámara');
-        console.log('Error', 'No se pudo obtener la imagen en base64');
         return;
       }
 
@@ -252,13 +244,9 @@ const handleOpenFolder = (folderName: string) => {
           });
           if (result.ok) {
             await fetchEvidencias(job, selectedFolder);
-  console.log('✅ Imagen guardada con éxito');
 } else {
-  console.log('❌ Error al guardar imagen: ' + result.status);
 }
         } catch (error) {
-          console.error('Error al enviar imagen:', error);
-          console.log('Error', '❌ Error de red al guardar imagen');
         }
       }
     }
@@ -285,15 +273,12 @@ const handleDeleteImage = async () => {
             });
 
             if (response.ok) {
-              console.log('✅ Imagen eliminada');
               setModalImageVisible(false);
               await fetchEvidencias(job, selectedFolder);
             } else {
-              console.error('❌ Error al eliminar imagen');
               Alert.alert('Error', 'No se pudo eliminar la imagen del servidor.');
             }
           } catch (error) {
-            console.error('❌ Error al eliminar imagen:', error);
             Alert.alert('Error', 'Ocurrió un error al eliminar la imagen.');
           }
         },

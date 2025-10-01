@@ -105,48 +105,80 @@ const LIDScreen = () => {
             console.log('Response: ', response);
             const result = await response.json();
 
-            if (result.success){
-            Alert.alert('Enviado', 'Checklist enviado como INCOMPLETO.');
-            navigation.navigate('ProcesoScreen', { job })
-            }else{
-                Alert.alert('Error al registrar los datos');
-            }
-          } catch (error) {
-            console.error('Error al guardar:', error);
-            Alert.alert('Error', 'No se pudo enviar el checklist incompleto.');
-          }
-        },
-      },
-    ]
-  );
-};
+             if (result.success) {
+                          Alert.alert('Enviado', 'Checklist enviado como INCOMPLETO.');
+            
+                          try {
+                            await fetch('http://192.168.16.146:3002/api/evaporador/completeJobs', {
+                              method: 'POST',
+                            });
+                          } catch (error) {
+                            console.error('Error al llamar a completeJobs:', error);
+                          }
+            
+                          navigation.navigate('ProcesoScreen', { job });
+            
+                        } else {
+                          Alert.alert('Error al registrar los datos');
+                        }
+                      } catch (error) {
+                        console.error('Error al guardar:', error);
+                        Alert.alert('Error', 'No se pudo enviar el checklist incompleto.');
+                      }
+                    },
+                  },
+                ]
+              );
+            };
 
 
 const handleComplete = async () => {
-    try {
-        await fetch('http://192.168.16.146:3002/api/evaporador/completeLid', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-                job,
-                fecha: fechaISO,
-                nomina: user?.Nomina,
-                checkboxes: checkedItems,
-                blowerDistance,
-                torqueValue,
-                serie: serieValue,
-                modelo: modeloValue,
-                comentarios
-            }),
+  try {
+    const response = await fetch('http://192.168.16.146:3002/api/evaporador/completeLid', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        job,
+        fecha: fechaISO,
+        nomina: user?.Nomina,
+        checkboxes: checkedItems,
+        blowerDistance,
+        torqueValue,
+        serie: serieValue,
+        modelo: modeloValue,
+        comentarios
+      }),
+    });
+
+    const result = await response.json();
+
+    if (result.success) {
+      Alert.alert('Enviado', 'Checklist enviado como COMPLETO.');
+
+      try {
+        await fetch('http://192.168.16.146:3002/api/evaporador/completeJobs', {
+          method: 'POST',
         });
-        Alert.alert('Enviado', 'Checklist enviado como COMPLETO.');
-        navigation.navigate('ProcesoScreen', { job })
-    } catch (error) {
-        Alert.alert('Error', 'No se pudo enviar el checklist completo.');
+      } catch (error) {
+        console.error('Error al llamar a completeJobs:', error);
+      }
+
+      // 👉 Navegar después de completar todo
+      navigation.navigate('ProcesoScreen', { job });
+
+    } else {
+      console.log('Respuesta del servidor:', result);
+      Alert.alert('Error al registrar los datos', result.message || 'Error desconocido');
     }
+
+  } catch (error) {
+    console.error('Error al guardar:', error);
+    Alert.alert('Error', 'No se pudo enviar el checklist completo.');
+  }
 };
+
 
 
     return (
@@ -266,6 +298,7 @@ const handleComplete = async () => {
         </View>
     <View style={[styles.tableCellBase3, styles.colInput]}>
        <TextInput
+        keyboardType='numeric'
   style={styles.inputText}
   value={blowerDistance}
   onChangeText={setBlowerDistance}
@@ -289,6 +322,7 @@ const handleComplete = async () => {
         </View>
     <View style={[styles.tableCellBase3, styles.colInput]}>
       <TextInput
+      keyboardType='numeric'
   style={styles.inputText}
   value={torqueValue}
   onChangeText={setTorqueValue}
@@ -356,7 +390,6 @@ const handleComplete = async () => {
     <View style={[styles.tableCellBase4, styles.colStat]}>
       <CheckBox
     value={statusChecked}
-    onValueChange={() => setStatusChecked(!statusChecked)}
     disabled={!checkedItems.every(item => item)}
     tintColors={{ true: 'black', false: 'gray' }}
 />
