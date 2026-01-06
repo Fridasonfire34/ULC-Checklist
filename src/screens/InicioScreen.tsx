@@ -7,9 +7,11 @@ import {
     ActivityIndicator,
     TouchableOpacity,
     Alert,
+    Image,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import logo from '../assets/Tafco-logo.png';
 
 const InicioScreen = () => {
     const [user, setUser] = useState<any>(null);
@@ -32,7 +34,7 @@ const InicioScreen = () => {
     const fetchJobsFromAPI = async () => {
         try {
             setLoading(true);
-            const response = await fetch('http://192.168.16.146:3002/api/evaporador/job');
+            const response = await fetch('http://192.168.15.161:3000/api/evaporador/job');
             if (!response.ok) {
                 throw new Error('Error al obtener los jobs');
             }
@@ -50,7 +52,7 @@ const InicioScreen = () => {
     if (!user) {
         return (
             <View style={styles.container}>
-                <Text style={styles.loadingText}>Cargando datos del usuario...</Text>
+                <Text style={styles.loadingText}>Loading user info...</Text>
             </View>
         );
     }
@@ -58,8 +60,8 @@ const InicioScreen = () => {
     return (
         <View style={styles.container}>
             <View style={styles.headerBox}>
-                <Text style={styles.headerText}>Evaporador BOX</Text>
-                <Text style={styles.welcomeText}> {user.Nomina}</Text>
+                <Text style={styles.headerText}>ULC Inspection Check List</Text>
+                <Text style={styles.welcomeText}> {user.ID}</Text>
             </View>
             <View style={styles.sectionBox}>
                 <Text style={styles.sectionTitle}>Elige un job:</Text>
@@ -78,12 +80,15 @@ const InicioScreen = () => {
     renderItem={({ item }) => (
         <TouchableOpacity
             onPress={() => navigation.navigate('Menu', {
+                jobid: item["Job ID"],
                 job: item["Job Number"],
-                nomina: user.Nomina,
+                project: item["Project"],
+                id: user.ID,
             })}
         >
             <View style={styles.card}>
                 <Text style={styles.cardText}>{item["Job Number"]}</Text>
+                <Text style={styles.cardText}>{item["Job ID"]}</Text>
             </View>
         </TouchableOpacity>
     )}
@@ -92,6 +97,10 @@ const InicioScreen = () => {
                     </>
                 )}
             </View>
+             <Image
+                style={styles.footerLogo}
+                source={logo}
+            />
         </View>
     );
 };
@@ -123,7 +132,7 @@ const styles = StyleSheet.create({
         position: 'absolute',
         right: 15,
         top: 15,
-        color: '#fff',
+        color: '#ffffffff',
         fontSize: 14,
         fontWeight: 'bold',
     },
@@ -198,7 +207,14 @@ const styles = StyleSheet.create({
         color: '#333',
         textAlign: 'center'
     },
-    
+     footerLogo: {
+    position: 'absolute',
+    bottom: 20,       // separacion desde abajo
+    alignSelf: 'center',
+    width: 300,
+    height: 125,
+    resizeMode: 'contain',
+},
 
 });
 

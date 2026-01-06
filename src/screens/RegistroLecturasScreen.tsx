@@ -88,7 +88,7 @@ const handleSave = async () => {
   };
 
   try {
-    const response = await fetch('http://192.168.16.146:3002/api/evaporador/registroLecturas', {
+    const response = await fetch('http://192.168.15.161:3000/api/evaporador/registroLecturas', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -103,7 +103,7 @@ const handleSave = async () => {
       Alert.alert('Lectura registrada correctamente');
 
       try {
-        await fetch('http://192.168.16.146:3002/api/evaporador/completeJobs', {
+        await fetch('http://192.168.15.161:3000/api/evaporador/completeJobs', {
           method: 'POST',
         });
       } catch (error) {

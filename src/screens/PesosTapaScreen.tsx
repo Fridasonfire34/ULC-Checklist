@@ -85,7 +85,7 @@ const PesosTapaScreen = () => {
             aprobado: approvalStatus === 'approved' ? 'SI' : 'NO'
         };
 
-        const response = await fetch('http://192.168.16.146:3002/api/evaporador/pesosTapa', {
+        const response = await fetch('http://192.168.15.161:3000/api/evaporador/pesosTapa', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',

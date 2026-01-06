@@ -1,4 +1,4 @@
-package com.evaporadorbox
+package com.ULCCheckList
 
 import android.app.Application
 import com.facebook.react.PackageList

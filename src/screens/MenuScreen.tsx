@@ -10,25 +10,34 @@ import {
 } from 'react-native';
 import { useFocusEffect, useNavigation, useRoute } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import logo from '../assets/Tafco-logo.png';
 
 const MenuScreen = () => {
     const route = useRoute();
-    const { job } = route.params || {};
+    const { jobid, job, project } = route.params || {};
     const [activeButton, setActiveButton] = useState<number | null>(null);
-    const [statusLecturasOK, setStatusLecturasOK] = useState(false);
-    const [statusPesosOK, setStatusPesosOK] = useState(false);
-    const [statusProcesoOK, setStatusProcesoOK] = useState(false);
     const [statusChecklistFinalOK, setStatusChecklistFinalOK] = useState(false);
     const navigation = useNavigation();
     const [user, setUser] = useState<any>(null);
 
+    // Botón dinámico según el proyecto
+    const getDimensionsLabel = () => {
+        if (project === 'ULC-190') return 'ULC-190 Dimensions';
+        if (project === 'ULC-259') return 'ULC-259 Dimensions';
+        if (project === 'ULC-328') return 'ULC-328 Dimensions';
+        return null;
+    };
+
+    const dynamicDimensionsLabel = getDimensionsLabel();
+
+    // Botones principales
     const buttons = [
-        { id: 0, label: 'Registro de lecturas', screen: 'RegistroLecturas' },
-        { id: 1, label: 'Registro de Pesos y Espumado', screen: 'Pesos' },
-        { id: 2, label: 'Checklist Proceso', screen: 'ProcesoScreen' },
-        { id: 3, label: 'Checklist Final', screen: 'FinalCheckScreen' },
-        { id: 4, label: 'Evidencias', screen: 'EvidenciasScreen' },
-        { id: 5, label: 'Reporte', screen: 'ReporteScreen'}
+        { id: 1, label: 'Inspection Check List', screen: 'ChecklistScreen' },
+        ...(dynamicDimensionsLabel
+            ? [{ id: 4, label: dynamicDimensionsLabel, screen: 'DimensionsScreen' }]
+            : []),
+        { id: 2, label: 'Evidence', screen: 'EvidenciasScreen' },
+        { id: 3, label: 'Report', screen: 'ReporteScreen' }
     ];
 
     useEffect(() => {
@@ -42,64 +51,30 @@ const MenuScreen = () => {
     }, []);
 
     useFocusEffect(
-      useCallback(() => {
-        const fetchLecturasYChecklist = async () => {
-          try {
-            const response = await fetch('http://192.168.16.146:3002/api/evaporador/getLecturasyCFinal', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ job }),
-            });
+        useCallback(() => {
+            const onBackPress = () => {
+                navigation.navigate('Inicio' as never);
+                return true;
+            };
 
-            const data = await response.json();
-
-            setStatusLecturasOK(data.statusLecturas === 'OK');
-            setStatusChecklistFinalOK(data.statusChecklistFinal === 'OK');
-            setStatusPesosOK(data.statusPesos === 'OK');
-            setStatusProcesoOK(data.statusProceso === 'OK');
-          } catch (error) {
-            Alert.alert('Error', 'No se pudo obtener el estado del trabajo.');
-          }
-        };
-
-        fetchLecturasYChecklist();
-      }, [job])
+            const subscription = BackHandler.addEventListener('hardwareBackPress', onBackPress);
+            return () => subscription.remove();
+        }, [navigation])
     );
 
-    useFocusEffect(
-      useCallback(() => {
-        const onBackPress = () => {
-          navigation.navigate('Inicio' as never);
-          return true;
-        };
-
-        const subscription = BackHandler.addEventListener('hardwareBackPress', onBackPress);
-        return () => subscription.remove();
-      }, [navigation])
-    );
-
-    const handlePress = (id: number, screen: string | null) => {
+    const handlePress = (id: number, screen: string) => {
         setActiveButton(id);
-        if (screen) {
-            navigation.navigate(screen as never, { job } as never);
-        }
+        navigation.navigate(screen as never, { jobid, job, project } as never);
     };
 
     const canEnableReporte = () => {
-        const statuses = [
-            statusLecturasOK,
-            statusPesosOK,
-            statusProcesoOK,
-            statusChecklistFinalOK,
-        ];
-        const okCount = statuses.filter(Boolean).length;
-        return okCount === 4;
+        return statusChecklistFinalOK;
     };
 
     if (!user) {
         return (
             <View style={styles.container}>
-                <Text style={styles.loadingText}>Cargando datos del usuario...</Text>
+                <Text style={styles.loadingText}>Loading user information...</Text>
             </View>
         );
     }
@@ -110,26 +85,23 @@ const MenuScreen = () => {
             <View style={styles.infoRow}>
                 <Text style={styles.bold2}>JOB: </Text>
                 <Text style={styles.normal}>{job}</Text>
-                <Text style={styles.welcomeText}>{user.Nomina}</Text>
+                <Text style={styles.projectText}>{jobid}</Text>
+                <Text style={styles.projectText}>{user.ID}</Text>
+                <Text style={styles.bold2}>{project}</Text>
             </View>
 
             <View style={styles.buttonContainer}>
                 {buttons.map((button) => {
                     const isPressed = activeButton === button.id;
-                    
-                    const isAutoActive =
-                        (button.id === 0 && statusLecturasOK) ||
-                        (button.id === 1 && statusPesosOK) ||
-                        (button.id === 2 && statusProcesoOK) ||
-                        (button.id === 3 && statusChecklistFinalOK);
 
+                    const isAutoActive = button.id === 1 && statusChecklistFinalOK;
                     const isActive = isPressed || isAutoActive;
 
-                    const hasRegistro = button.label.includes('Registro');
-                    const hasCheckList = button.label.includes('Checklist');
-                    const hasEvidencia = button.label.includes('Evidencias');
-                    const isReporte = button.label.includes('Reporte');
-                    
+                    const hasCheckList = button.label.includes('Inspection');
+                    const hasEvidencia = button.label.includes('Evidence');
+                    const isReporte = button.label.includes('Report');
+                    const isDimensions = button.label.includes('Dimensions');
+
                     const isDisabled = isReporte && !canEnableReporte();
 
                     return (
@@ -143,8 +115,8 @@ const MenuScreen = () => {
                             onPress={() => {
                                 if (isAutoActive) {
                                     Alert.alert(
-                                        'Checklist completo',
-                                        'Este checklist ya está completado y guardado.\nContestarlo de nuevo borrará la información anterior,\n\n¿Deseas continuar?',
+                                        'Checklist Final completo',
+                                        'Ya completaste este checklist.\nSi lo contestas de nuevo, se borrará la información anterior.\n\n¿Deseas continuar?',
                                         [
                                             { text: 'No', style: 'cancel' },
                                             { text: 'Sí', onPress: () => handlePress(button.id, button.screen) }
@@ -153,36 +125,41 @@ const MenuScreen = () => {
                                 } else if (!isDisabled) {
                                     handlePress(button.id, button.screen);
                                 } else if (isReporte) {
-                                    Alert.alert('Acción no permitida', 'Debes completar todos los pasos antes de generar el reporte.');
+                                    Alert.alert('No permitido', 'Debes completar el Checklist Final antes del reporte.');
                                 }
                             }}
                             disabled={isDisabled}
                         >
                             <View style={styles.contentRow}>
-                                {hasRegistro && (
-                                    <Image
-                                        source={require('../assets/Registro.png')}
-                                        style={styles.buttonImage}
-                                    />
-                                )}
+                                
                                 {hasCheckList && (
                                     <Image
                                         source={require('../assets/checklist.png')}
                                         style={styles.buttonImageRegistro}
                                     />
                                 )}
+
+                                {isDimensions && (
+                                    <Image
+                                       source={require('../assets/Regla.png')}  // ícono sugerido, puedes cambiarlo
+                                        style={styles.buttonImageCamera}
+                                    />
+                                )}
+
                                 {hasEvidencia && (
                                     <Image
                                         source={require('../assets/camara.png')}
                                         style={styles.buttonImageCamera}
                                     />
                                 )}
+
                                 {isReporte && (
                                     <Image
-                                    source={require('../assets/ok.png')}
-                                    style={styles.buttonImageOK}
+                                        source={require('../assets/ok.png')}
+                                        style={styles.buttonImageOK}
                                     />
                                 )}
+
                                 <Text style={[
                                     styles.buttonText,
                                     isActive && styles.activeButtonText,
@@ -195,7 +172,12 @@ const MenuScreen = () => {
                     );
                 })}
             </View>
+            <Image
+    style={styles.footerLogo}
+    source={logo}
+/>
         </View>
+        
     );
 };
 
@@ -214,7 +196,15 @@ const styles = StyleSheet.create({
         position: 'absolute',
         right: 15,
         top: 15,
-        color: '#000000ff',
+        color: '#ffffffff',
+        fontSize: 14,
+        fontWeight: 'bold',
+    },
+    projectText: {
+        position: 'relative',
+        left: 12,
+        top: 15,
+        color: '#ffffffff',
         fontSize: 14,
         fontWeight: 'bold',
     },
@@ -254,12 +244,6 @@ const styles = StyleSheet.create({
     activeButtonText: {
         color: '#000000',
     },
-    buttonImage: {
-        width: 80,
-        height: 80,
-        marginRight: 2,
-        resizeMode: 'contain',
-    },
     buttonImageRegistro: {
         width: 60,
         height: 60,
@@ -285,6 +269,7 @@ const styles = StyleSheet.create({
         marginBottom: 10,
         alignItems: 'center',
         justifyContent: 'center',
+        marginTop: 10,
     },
     normal: {
         fontSize: 24,
@@ -302,6 +287,14 @@ const styles = StyleSheet.create({
     disabledButtonText: {
         color: '#666666',
     },
+    footerLogo: {
+    position: 'absolute',
+    bottom: 20,       // separacion desde abajo
+    alignSelf: 'center',
+    width: 300,
+    height: 125,
+    resizeMode: 'contain',
+},
 });
 
 export default MenuScreen;

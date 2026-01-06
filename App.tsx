@@ -10,36 +10,20 @@ import LoginScreen from './src/screens/LoginScreen';
 import InicioScreen from './src/screens/InicioScreen';
 import MenuScreen from './src/screens/MenuScreen';
 import RegistroLecturasScreen from './src/screens/RegistroLecturasScreen';
-import PesosScreen from './src/screens/PesosScreen';
-import OpcionesProcesoScreen from './src/screens/OpcionesProcesoScreen';
-import LIDScreen from './src/screens/LIDScreen';
 import TopScreen from './src/screens/TopScreen';
-import PesosTapaScreen from './src/screens/PesosTapaScreen';
-import PesosCuerpoScreen from './src/screens/PesosCuerpoScreen';
-import PesosBaseScreen from './src/screens/PesosBaseScreen';
-import BottomScreen from './src/screens/BottomScreen';
-import MasterScreen from './src/screens/MasterScreen';
-import FinalCheckScreen from './src/screens/FinalCheckScreen';
 import EvidenciasScreen from './src/screens/EvidenciasScreen';
 import ReporteScreen from './src/screens/ReporteScreen';
+import ChecklistScreen from './src/screens/ChecklistScreen';
 
 type RootStackParamList = {
   Login: undefined;
   Inicio: undefined;
   Menu: undefined;
-  Pesos: undefined;
   RegistroLecturas: undefined;
-  BottomScreen: undefined;
   EvidenciasScreen: undefined;
   FinalCheckScreen: undefined;
   FinalScreen: undefined;
-  LIDScreen: undefined;
-  MasterScreen: undefined;
-  ProcesoScreen: undefined;
   PesosBaseScreen: undefined;
-  PesosCuerpoScreen: undefined;
-  PesosScreen: undefined;
-  PesosTapaScreen: undefined;
   RegistroLecturasScreen: undefined;
   TopScreen: undefined;
   ReporteScreen: undefined;
@@ -86,23 +70,8 @@ const App: React.FC = () => {
           options={{ headerShown: false }}
         />
         <Stack.Screen
-          name="Pesos"
-          component={PesosScreen}
-          options={{ headerShown: false }}
-        />
-        <Stack.Screen
           name="RegistroLecturas"
           component={RegistroLecturasScreen}
-          options={{ headerShown: false }}
-        />
-        <Stack.Screen
-          name="ProcesoScreen"
-          component={OpcionesProcesoScreen}
-          options={{ headerShown: false }}
-        />
-        <Stack.Screen
-          name="LIDScreen"
-          component={LIDScreen}
           options={{ headerShown: false }}
         />
         <Stack.Screen
@@ -111,33 +80,8 @@ const App: React.FC = () => {
           options={{ headerShown: false }}
         />
         <Stack.Screen
-          name="PesosTapaScreen"
-          component={PesosTapaScreen}
-          options={{ headerShown: false }}
-        />
-        <Stack.Screen
-          name="PesosCuerpoScreen"
-          component={PesosCuerpoScreen}
-          options={{ headerShown: false }}
-        />
-        <Stack.Screen
-          name="PesosBaseScreen"
-          component={PesosBaseScreen}
-          options={{ headerShown: false }}
-        />
-        <Stack.Screen
-          name="BottomScreen"
-          component={BottomScreen}
-          options={{ headerShown: false }}
-        />
-        <Stack.Screen
-          name="MasterScreen"
-          component={MasterScreen}
-          options={{ headerShown: false }}
-        />
-        <Stack.Screen
-          name="FinalCheckScreen"
-          component={FinalCheckScreen}
+          name="ChecklistScreen"
+          component={ChecklistScreen}
           options={{ headerShown: false }}
         />
         <Stack.Screen

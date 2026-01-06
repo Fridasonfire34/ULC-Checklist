@@ -12,7 +12,7 @@ import {
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { StackNavigationProp } from '@react-navigation/stack';
-import logo from '../assets/tmplogo2.jpg';
+import logo from '../assets/Tafco-logo.png';
 import Icon from 'react-native-vector-icons/Ionicons';
 
 type RootStackParamList = {
@@ -27,22 +27,22 @@ interface Props {
 }
 
 const LoginScreen: React.FC<Props> = ({ navigation }) => {
-    const [nomina, setNomina] = useState('');
+    const [ID, setId] = useState('');
     const [password, setPassword] = useState('');
     const [showPassword, setShowPassword] = useState(false);
     const [focusPassword, setFocusPassword] = useState(false);
     const [error, setError] = useState('');
-    const [focusNomina, setFocusNomina] = useState(false);
+    const [focusID, setFocusID] = useState(false);
     const passwordRef = useRef<TextInput>(null);
 
-    const animNomina = useRef(new Animated.Value(nomina ? 1 : 0)).current;
+    const animID = useRef(new Animated.Value(ID ? 1 : 0)).current;
     const animPassword = useRef(new Animated.Value(password ? 1 : 0)).current;
 
     
     const handleFocus = (field: string) => {
-        if (field === 'nomina') {
-            setFocusNomina(true);
-            Animated.timing(animNomina, {
+        if (field === 'ID') {
+            setFocusID(true);
+            Animated.timing(animID, {
                 toValue: 1,
                 duration: 200,
                 useNativeDriver: false
@@ -58,9 +58,9 @@ const LoginScreen: React.FC<Props> = ({ navigation }) => {
     };
 
     const handleBlur = (field: string) => {
-        if (field === 'nomina' && !nomina) {
-            setFocusNomina(false);
-            Animated.timing(animNomina, {
+        if (field === 'ID' && !ID) {
+            setFocusID(false);
+            Animated.timing(animID, {
                 toValue: 0,
                 duration: 200,
                 useNativeDriver: false
@@ -95,51 +95,43 @@ const LoginScreen: React.FC<Props> = ({ navigation }) => {
     try {
         setError('');
 
-        const response = await fetch('http://192.168.16.146:3002/api/evaporador/login', {
+        const response = await fetch('http://192.168.15.161:3000/api/evaporador/login', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
             },
-            body: JSON.stringify({ nomina, password }),
+            body: JSON.stringify({ ID, password }), // <-- CORREGIDO
         });
 
         const data = await response.json();
 
         if (!response.ok) {
-            const message = data.message || 'Ocurrió un error';
+            const message = data.message || 'There was an error';
             if (response.status === 401) {
-                Alert.alert('Credenciales incorrectas', message);
+                Alert.alert('Wrong user or password', message);
             } else {
-                Alert.alert('Error del servidor', message);
+                Alert.alert('Error on server: ', message);
             }
             return;
         }
 
         if (data?.user) {
             await AsyncStorage.setItem('user', JSON.stringify(data.user));
-            setNomina('');
-            setPassword('');
 
-            try {
-                const completeJobsResponse = await fetch('http://192.168.16.146:3002/api/evaporador/completeJobs', {
-    method: 'POST',
-});
-                if (!completeJobsResponse.ok) {
-                    console.warn('Fallo al completar trabajos automáticamente');
-                }
-            } catch (completeJobsError) {
-                console.warn('Error al llamar a completeJobs:', completeJobsError);
-            }
+            setId('');
+            setPassword('');
 
             navigation.navigate('Inicio');
         } else {
-            Alert.alert('Respuesta inválida del servidor');
+            Alert.alert('Invalid response from server');
         }
+
     } catch (err) {
         console.log('Error:', err);
-        Alert.alert('No se pudo conectar al servidor. Revisa tu conexión.');
+        Alert.alert('Unable to connect to server. Check your connection');
     }
 };
+
 
     return (
         <ImageBackground
@@ -148,22 +140,22 @@ const LoginScreen: React.FC<Props> = ({ navigation }) => {
             style={styles.container}
         >
             <View style={styles.header}>
-                <Text style={styles.title}>Evaporador BOX</Text>
+                <Text style={styles.title}>ULC Inspection Check List</Text>
             </View>
 
             <Text style={styles.subtitle}>Login</Text>
             <View style={styles.inputContainer}>
                 <View style={{ width: '95%', marginBottom: 40 }}>
 
-                    <Animated.Text style={getLabelStyle(animNomina)}>Nómina</Animated.Text>
+                    <Animated.Text style={getLabelStyle(animID)}>ID</Animated.Text>
                     <TextInput
                         style={styles.input}
-                        value={nomina}
+                        value={ID}
                         keyboardType='numeric'
-                        onChangeText={setNomina}
-                        onFocus={() => handleFocus('nomina')}
-                        onBlur={() => handleBlur('nomina')}
-                        placeholder={focusNomina ? '' : 'Nómina'}
+                        onChangeText={setId}
+                        onFocus={() => handleFocus('ID')}
+                        onBlur={() => handleBlur('ID')}
+                        placeholder={focusID ? '' : 'ID'}
                         onSubmitEditing={() => passwordRef?.current?.focus()}
                     />
                 </View>
@@ -198,7 +190,7 @@ const LoginScreen: React.FC<Props> = ({ navigation }) => {
                     <Text style={styles.buttonText}>→</Text>
                 </TouchableOpacity>
             </View>
-            <Image style={{ marginTop: 50, width: 200, height: 50 }} source={logo} />
+            <Image style={{ marginTop: 1, width: 300, height: 125 }} source={logo} />
         </ImageBackground>
     );
 };
@@ -223,7 +215,7 @@ const styles = StyleSheet.create({
     },
     subtitle: {
         fontSize: 22,
-        color: '#666',
+        color: '#000000ff',
         alignSelf: 'flex-start',
         marginLeft: 15,
         marginBottom: 50,
